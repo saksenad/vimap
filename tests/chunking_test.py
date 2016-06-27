@@ -8,7 +8,6 @@ import testify as T
 import vimap.pool
 import vimap.worker_process
 
-
 basic_worker = vimap.worker_process.worker(lambda inputs: inputs)
 
 

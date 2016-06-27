@@ -8,7 +8,8 @@ pool = vimap.pool.fork(...)
 for in_, out in pool.imap(my_input).zip_in_out():
     ...
 
-You can also use it in a more "async" manner, e.g. when your input sequences are
+You can also use it in a more "async" manner, e.g.
+when your input sequences are
 relatively small and/or calculated ahead of time, you can write,
 
     processes.map(seq1)
@@ -32,9 +33,7 @@ import vimap.real_worker_routine
 import vimap.chunked_real_worker_routine
 import vimap.util
 
-
 NO_INPUT = 'NO_INPUT'
-
 
 _DEFAULT_DEFAULT_CHUNK_SIZE = 100
 
@@ -88,15 +87,22 @@ class VimapPool(object):
         def check_output_for_error(item):
             uid, typ, output = item
             if typ == 'exception':
-                # NOTE(gatoatigrado|2015-02-23): While we may eventually want to remove
-                # this, since zip_in_out() rethrows exceptions and such, it's probably
-                # okay for now since there are a few conditions, like exceptions being
-                # raised on worker startup, or the main process not finishing
-                # iterating through zip_in_out(), where only this would print errors.
+                # NOTE(gatoatigrado|2015-02-23): While we may
+                # eventually want to remove
+                # this, since zip_in_out() rethrows exceptions and such,
+                # it's probably
+                # okay for now since there are a few conditions,
+                # like exceptions being
+                # raised on worker startup, or the main process
+                # not finishing
+                # iterating through zip_in_out(), where only this
+                # would print errors.
                 # c.f. ExceptionTest.test_unconsumed_exceptions.
-                vimap.exception_handling.print_exception(output, None, None)
+                vimap.exception_handling.print_exception(output, None,
+                                                         None)
                 if self_ref():
                     self_ref().has_exceptions = True
+
         self.qm.add_output_hook(check_output_for_error)
 
         self.processes = []
@@ -126,7 +132,9 @@ class VimapPool(object):
             state['output_counter'] += 1
             if time.time() - state['last_printed'] > print_interval_s:
                 state['last_printed'] = time.time()
-                print_fcn("Processed {0} {1}".format(state['output_counter'], item_type))
+                print_fcn("Processed {0} {1}"
+                          .format(state['output_counter'], item_type))
+
         self.qm.add_output_hook(print_output_progress)
         return self
 
@@ -134,7 +142,8 @@ class VimapPool(object):
         debug = self.debug if debug is None else debug
         for i, worker in enumerate(self.worker_sequence):
             routine = self.worker_routine_class(
-                worker.fcn, worker.args, worker.kwargs, index=i, debug=debug)
+                worker.fcn, worker.args, worker.kwargs, index=i,
+                debug=debug)
             process = self.process_class(
                 target=routine.run,
                 args=(self.qm.input_queue, self.qm.output_queue))
@@ -177,14 +186,16 @@ class VimapPool(object):
         # queue as processes die, or else other processes may not
         # be able to enqueue their final items to the output queue
         # (since it's full).
-        while not self.all_processes_died(exception_check_optimization=False):
+        while not self.all_processes_died(
+                exception_check_optimization=False):
             self.qm.feed_out_to_tmp(max_time_s=None)
             time.sleep(0.001)
         self.qm.feed_out_to_tmp(max_time_s=None)
 
         for process in self.processes:
             process.join()
-        # NOTE: Not only prevents future erroneous accesses, 'del' is actually
+        # NOTE: Not only prevents future erroneous accesses,
+        # 'del' is actually
         # necessary to clean up / close the pipes used by the process.
         del self.processes
 
@@ -192,10 +203,12 @@ class VimapPool(object):
 
     @vimap.util.instancemethod_runonce()
     def finish_workers(self):
-        '''Sends stop tokens to subprocesses, then joins them. There may still be
+        '''Sends stop tokens to subprocesses, then joins them.
+        There may still be
         unconsumed output.
 
-        This method is called when you call zip_in_out() with finish_workers=True
+        This method is called when you call zip_in_out() with
+        finish_workers=True
         (the default), as well as when the GC reclaims the pool.
         '''
         if self.debug:
@@ -231,20 +244,25 @@ class VimapPool(object):
         '''Input from all calls to imap; downside of this approach
         is that it keeps around dead iterators.
         '''
+
         def get_serialized((x, xser)):
             uid = self.input_uid_ctr
             self.input_uid_ctr += 1
             self.input_uid_to_input[uid] = x
             return (uid, xser)
-        return (get_serialized(x) for seq in self.input_sequences for x in seq)
+
+        return (get_serialized(x) for seq in
+                self.input_sequences for x in seq)
 
     def spool_input(self, close_if_done=False):
         '''Put input on the queue. If `close_if_done` and we reach the end
         of the input stream, send stop tokens.
         '''
-        if self.qm.spool_input(self.all_input_serialized) and close_if_done:
+        if self.qm.spool_input(
+                self.all_input_serialized) and close_if_done:
             # reached the end of the stream
             self.send_stop_tokens()
+
     # ------
 
     def get_corresponding_input(self, uid, output):
@@ -290,7 +308,8 @@ class VimapPool(object):
                 raise
         if close_if_done:
             self.finish_workers()
-        # Return when input given is exhausted, or workers die from exceptions
+            # Return when input given is exhausted, or workers
+            # die from exceptions
 
     def zip_in_out(self, *args, **kwargs):
         '''Yield (input, output) tuples for each input item processed.
@@ -298,14 +317,17 @@ class VimapPool(object):
         they will be re-raised on the main process.
 
         :param *args: args (currently, close_if_done) passed to zip_in_out_typ
-        :param **kwargs: kwargs (currently, close_if_done) passed to zip_in_out_typ
+        :param **kwargs: kwargs (currently, close_if_done)
+        passed to zip_in_out_typ
         '''
         for inp, output, typ in self.zip_in_out_typ(*args, **kwargs):
             if typ == 'output':
                 yield inp, output
             elif typ == 'exception':
-                assert isinstance(output, vimap.exception_handling.ExceptionContext)
+                assert isinstance(output,
+                                  vimap.exception_handling.ExceptionContext)
                 output.reraise()
+
     # ------
 
     def block_ignore_output(self, *args, **kwargs):
@@ -314,7 +336,8 @@ class VimapPool(object):
 
 
 class ChunkedPool(VimapPool):
-    worker_routine_class = vimap.chunked_real_worker_routine.ChunkedWorkerRoutine
+    worker_routine_class = vimap.chunked_real_worker_routine \
+        .ChunkedWorkerRoutine
 
     def __init__(self, *args, **kwargs):
         self.default_chunk_size = kwargs.pop(
@@ -332,26 +355,32 @@ class ChunkedPool(VimapPool):
         """By default, using the regular vimap API (in this case, imap) will
         automatically chunk input.
         """
-        chunk_size = (self.default_chunk_size if chunk_size is None else chunk_size)
+        chunk_size = (self.default_chunk_size
+                      if chunk_size is None else chunk_size)
         self.check_chunk_size(chunk_size)
-        return self.imap_chunks(vimap.util.chunk(input_sequence, chunk_size))
+        return self.imap_chunks(
+            vimap.util.chunk(input_sequence, chunk_size))
 
     def zip_in_out_typ(self, *args, **kwargs):
         """By default, the regular vimap API will un-chunk output. So, as we
         get back output from the base API, we yield an input-output pair
         for everything in the chunk.
         """
-        for inp, output, typ in self.zip_in_out_typ_chunks(*args, **kwargs):
+        for inp, output, typ in self.zip_in_out_typ_chunks(*args,
+                                                           **kwargs):
             if typ == 'output':
                 assert len(inp) == len(output)
                 for in_elt, out_elt in zip(inp, output):
                     yield in_elt, out_elt, typ
             else:
-                # To have a consistent API, we untuple the input and say the exception
+                # To have a consistent API, we untuple the
+                # input and say the exception
                 # happened on the first element (which may not be true); if the
                 # input is malformed in any way (or the NO_INPUT token), we
                 # pass it through unprocessed.
-                inp = (inp[0] if (isinstance(inp, (list, tuple)) and inp) else inp)
+                inp = (inp[0] if (isinstance(inp,
+                                             (list,
+                                              tuple)) and inp) else inp)
                 yield inp, output, typ
 
     # Chunked API -- provides a lower-level API to directly enqueue or consume
@@ -374,7 +403,8 @@ class ChunkedPool(VimapPool):
         """To provide chunked APIs for all methods, we also add a zip_in_out_chunks()
         which is like zip_in_out_typ_chunks but filters on typ == 'output'.
         """
-        for inp, output, typ in self.zip_in_out_typ_chunks(*args, **kwargs):
+        for inp, output, typ in self.zip_in_out_typ_chunks(*args,
+                                                           **kwargs):
             if typ == 'output':
                 yield inp, output
 
@@ -392,7 +422,8 @@ def _fork_identical_base(fork_method, worker_fcn, *args, **kwargs):
     arguments.
     '''
     num_workers = kwargs.pop('num_workers', multiprocessing.cpu_count())
-    return fork_method(worker_fcn.init_args(*args, **kwargs) for _ in range(num_workers))
+    return fork_method(worker_fcn.init_args(*args, **kwargs)
+                       for _ in range(num_workers))
 
 
 def fork_identical(*args, **kwargs):

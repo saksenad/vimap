@@ -24,15 +24,18 @@ class BasicInoutTest(T.TestCase):
         tells our test class that it actually cleaned up workers.
         '''
         test_passes = {}
-        processes = vimap.pool.fork(worker_proc.init_args(init=i) for i in [1, 2, 3])
-        processes.finish_workers = lambda: test_passes.setdefault('result', True)
+        processes = vimap.pool.fork(
+            worker_proc.init_args(init=i) for i in [1, 2, 3])
+        processes.finish_workers = lambda: test_passes.setdefault('result',
+                                                                  True)
         del processes  # will happen if it falls out of scope
 
         # gc.collect() -- doesn't seem necessary
         T.assert_dicts_equal(test_passes, {'result': True})
 
     def test_basic(self):
-        processes = vimap.pool.fork(worker_proc.init_args(init=i) for i in [1, 2, 3])
+        processes = vimap.pool.fork(
+            worker_proc.init_args(init=i) for i in [1, 2, 3])
         list(processes.zip_in_out())
 
     def test_reuse_pool(self):
@@ -40,20 +43,25 @@ class BasicInoutTest(T.TestCase):
         Test that process pools can be re-used. This is important for avoiding
         forking costs.
         '''
-        processes = vimap.pool.fork(worker_proc.init_args(init=i) for i in [1, 2, 3])
+        processes = vimap.pool.fork(
+            worker_proc.init_args(init=i) for i in [1, 2, 3])
 
-        results = list(processes.imap([4, 4, 4]).zip_in_out(close_if_done=False))
+        results = list(
+            processes.imap([4, 4, 4]).zip_in_out(close_if_done=False))
         assert set(results) == set([(4, 5), (4, 6), (4, 7)])
 
-        results = list(processes.imap([4, 4, 4]).zip_in_out(close_if_done=True))
+        results = list(
+            processes.imap([4, 4, 4]).zip_in_out(close_if_done=True))
         assert set(results) == set([(4, 5), (4, 6), (4, 7)])
 
     def test_really_parallel(self):
-        '''Make sure things run in parallel: Determine that different threads are
-        handling different inputs (via time.sleep stuff). This could fail if the
-        sleep values are too small to compensate for the forking overhead.
+        '''Make sure things run in parallel: Determine that different
+        threads are handling different inputs (via time.sleep stuff).
+        This could fail if the sleep values are too small to
+        compensate for the forking overhead.
         '''
-        processes = vimap.pool.fork(worker_proc.init_args(init=i) for i in [1, 2, 3])
+        processes = vimap.pool.fork(
+            worker_proc.init_args(init=i) for i in [1, 2, 3])
         results = []
         for input, output in processes.imap([4, 4, 4] * 3).zip_in_out():
             results.append((input, output))

@@ -15,7 +15,8 @@ import vimap.exception_handling
 
 def run_exception_test(imap_ordered_or_unordered):
     """
-    Checks that exceptions are re-thrown, for either imap_unordered or imap_ordered.
+    Checks that exceptions are re-thrown,
+    for either imap_unordered or imap_ordered.
 
     :param imap_ordered_or_unordered:
         either vimap.ext.sugar.imap_unordered or ...imap_ordered
@@ -82,15 +83,19 @@ class ImapOrderedTests(T.TestCase):
         T.assert_gt(
             len(unspooled_input),
             9000,
-            message="Most inputs should not be processed (too much spooling / "
-                    "not lazy). Only {0} remained.".format(len(unspooled_input))
+            message="Most inputs should not be processed "
+                    "(too much spooling / "
+                    "not lazy). Only {0} remained."
+                    .format(len(unspooled_input))
         )
-        assert num_processed + len(unspooled_input) == 10000, "Something got dropped"
+        assert num_processed + len(unspooled_input) == 10000,\
+            "Something got dropped"
 
         T.assert_equal(
             consumed + rest,
             tuple(2 * i for i in xrange(num_processed)),
-            message="Processed inputs weren't the first in the stream, or are out of order."
+            message="Processed inputs weren't the first "
+                    "in the stream, or are out of order."
         )
 
     def test_exceptions(self):
@@ -115,8 +120,10 @@ class ImapOrderedChunkedTests(T.TestCase):
         # itself along with the process pid so that we know which process gets
         # which input value.
         def input_with_pid(input):
-            # Delay a bit here to prevent the test being flaky when one worker
-            # finishing with one chunk of input and grabbing next before we assign
+            # Delay a bit here to prevent the test
+            # being flaky when one worker
+            # finishing with one chunk of input
+            # and grabbing next before we assign
             # that next chunk to another worker
             time.sleep(0.1)
             return (input, multiprocessing.current_process().pid)
@@ -127,12 +134,15 @@ class ImapOrderedChunkedTests(T.TestCase):
             chunk_size=3
         ))
 
-        # By grouping return values by pid, we could get all the input values for
-        # each worker process. Make sure the input value groups are the same as
+        # By grouping return values by pid, we could
+        # get all the input values for
+        # each worker process. Make sure the input
+        # value groups are the same as
         # the result of chunking (expected_input_chunks).
         expected_input_chunks = [(0, 1, 2), (3, 4, 5), (6, 7)]
         actual_input_chunks = []
-        for pid, group in itertools.groupby(input_with_pids, key=lambda (x, pid): pid):
+        for pid, group in itertools.groupby(input_with_pids,
+                                            key=lambda (x, pid): pid):
             input_chunk, pids = zip(*group)
             actual_input_chunks.append(input_chunk)
 

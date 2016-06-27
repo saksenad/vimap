@@ -22,9 +22,11 @@ class TestInstance(object):
 class InstancemethodWorkerTest(T.TestCase):
     def test_basic(self):
         ti = TestInstance(unpickleable)
-        pool = vimap.pool.fork(ti.worker.init_args(init_arg=4) for _ in xrange(3))
+        pool = vimap.pool.fork(
+            ti.worker.init_args(init_arg=4) for _ in xrange(3))
         result = list(pool.imap([2100, 2200, 2300]).zip_in_out())
-        T.assert_equal(set(result), set([(2300, 2307), (2100, 2107), (2200, 2207)]))
+        T.assert_equal(set(result),
+                       set([(2300, 2307), (2100, 2107), (2200, 2207)]))
 
     def test_unpickleable(self):
         T.assert_raises(

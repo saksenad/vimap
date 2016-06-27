@@ -33,7 +33,8 @@ class ExceptionContextTest(testify.TestCase):
         testify.assert_in("in get_ec", ec.formatted_traceback)
 
     def test_formatted_exception(self):
-        testify.assert_equal("ValueError: hi", self.get_ec().formatted_exception)
+        testify.assert_equal("ValueError: hi",
+                             self.get_ec().formatted_exception)
 
     def test_reraise(self):
         testify.assert_raises_and_contains(
@@ -51,7 +52,8 @@ class ExceptionContextTest(testify.TestCase):
         cPickle.dumps(ec)  # make sure it can indeed be serialized
         testify.assert_isinstance(ec, exception_handling.ExceptionContext)
         testify.assert_isinstance(ec.value, Exception)
-        testify.assert_equal(str(ec.value), "UNPICKLEABLE AND UNSERIALIZABLE MESSAGE")
+        testify.assert_equal(str(ec.value),
+                             "UNPICKLEABLE AND UNSERIALIZABLE MESSAGE")
 
     def test_unpickleable_with_uninitializable_exception(self):
         """
@@ -59,6 +61,7 @@ class ExceptionContextTest(testify.TestCase):
         not being in global variables) and one that can't be reinitialized
         with a single string argument.
         """
+
         class CustomException(Exception):
             def __init__(self, a, b):
                 self.a, self.b = a, b
@@ -72,5 +75,6 @@ class ExceptionContextTest(testify.TestCase):
         except:
             ec = exception_handling.ExceptionContext.current()
         cPickle.dumps(ec)  # make sure it can indeed be serialized
-        testify.assert_isinstance(ec.value, exception_handling.UnpickleableException)
+        testify.assert_isinstance(ec.value,
+                                  exception_handling.UnpickleableException)
         testify.assert_equal(str(ec.value), "CustomException: 3, 4")

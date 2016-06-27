@@ -55,11 +55,11 @@ class RandomTimeoutOutputQueue(object):
 
 
 def get_qm(
-    input_queue,
-    output_queue,
-    max_real_in_flight=10,
-    max_total_in_flight=20,
-    timeouts_config=vimap.config.TimeoutConfig.default_config()
+        input_queue,
+        output_queue,
+        max_real_in_flight=10,
+        max_total_in_flight=20,
+        timeouts_config=vimap.config.TimeoutConfig.default_config()
 ):
     qm = vimap.queue_manager.VimapQueueManager(
         max_real_in_flight=max_real_in_flight,

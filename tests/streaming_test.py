@@ -39,7 +39,8 @@ class StreamingTest(T.TestCase):
         def input_generator():
             for i in sorted(inputs_which_must_be_processed):
                 yield i
-            while not already_processed.issuperset(inputs_which_must_be_processed):
+            while not already_processed.issuperset(
+                    inputs_which_must_be_processed):
                 yield None
 
         pool = self.fork_pool()
@@ -51,7 +52,8 @@ class StreamingTest(T.TestCase):
         # input_generator(). It can be greater than zero, when the worker
         # hasn't finished processing the first 100 numerical inputs, but our
         # main thread wants to enqueue more inputs (to keep the workers busy).
-        streaming_lookahead = num_elements_total - len(inputs_which_must_be_processed)
+        streaming_lookahead = num_elements_total - len(
+            inputs_which_must_be_processed)
         T.assert_gte(
             streaming_lookahead,
             0,
@@ -76,8 +78,10 @@ class StrictInflightStreamingTest(StreamingTest):
     """Checks that max_total_in_flight acts as a hard upper bound on the
     number of inputs spooled.
     """
+
     def fork_pool(self):
-        pool = vimap.pool.fork([do_nothing_worker.init_args()], max_total_in_flight_factor=2)
+        pool = vimap.pool.fork([do_nothing_worker.init_args()],
+                               max_total_in_flight_factor=2)
 
         # This assert checks that the max_total_in_flight argument is properly
         # propagated to the queue manager, and makes it directly obvious that
@@ -95,6 +99,7 @@ class MyFancyClass(object):
 
 class InputRefsReleasedTest(T.TestCase):
     """Checks that references to input elements are released."""
+
     def test(self):
         weakrefs = []
         inputs = (MyFancyClass(x) for x in xrange(100))

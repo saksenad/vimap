@@ -21,12 +21,15 @@ class FuzzTest(T.TestCase):
 
     def test_fuzz(self):
         for n in xrange(1, 100):
-            processes = self.fork_pool(worker_proc.init_args(init=i) for i in [1, 1, 1])
+            processes = self.fork_pool(
+                worker_proc.init_args(init=i) for i in [1, 1, 1])
             res = list(processes.imap(list(range(1, n))).zip_in_out())
-            T.assert_sets_equal(set(out for in_, out in res), set(range(2, n+1)))
+            T.assert_sets_equal(set(out for in_, out in res),
+                                set(range(2, n + 1)))
 
     def test_try_overwhelm_output_queue(self):
-        processes = self.fork_pool(worker_proc.init_args(init=i) for i in [1, 1, 1])
+        processes = self.fork_pool(
+            worker_proc.init_args(init=i) for i in [1, 1, 1])
         processes.imap(xrange(10000)).block_ignore_output()
 
     def test_slow_consumer(self):
